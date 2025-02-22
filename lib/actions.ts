@@ -1,14 +1,25 @@
 'use server'
 
-import OpenAI from "openai";
+import { OpenAI } from '@posthog/ai'
+import { PostHog } from 'posthog-node'
 import { conversational_ai_prompt_generator, final_11labs_prompt, style_extractor_agent_prompt } from "./prompts";
 import { ElevenLabsClient } from "elevenlabs";
 import { addPersona } from "./database";
 import { Persona } from "./types";
 
-const openai = new OpenAI();
-
 async function openaiCompletion(prompt: string, userMessage: string): Promise<string> {
+    console.log("Running AI completion...")
+
+    const phClient = new PostHog(
+        'phc_P0zmNW1JeorIbK4AMcUts2c3H1ZsozsRxKvZcYnklL5',
+        { host: 'https://eu.i.posthog.com' }
+    );
+      
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY || '',
+        posthog: phClient,
+    });
+
     const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -21,7 +32,14 @@ async function openaiCompletion(prompt: string, userMessage: string): Promise<st
                 content: userMessage
             }
         ],
+        posthogDistinctId: "user_123", // optional
+        posthogTraceId: "trace_123", // optional
+        posthogProperties: { conversation_id: "abc123", paid: true }, // optional
+        posthogGroups: { company: "company_id_in_your_db" }, // optional 
+        posthogPrivacyMode: false // optional
     });
+
+    phClient.shutdown()
 
     return completion.choices[0].message.content || "Failed to run AI completion";
 }
