@@ -11,7 +11,7 @@ export default function Home() {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [file, setFile] = useState<File | null>(null);
-    const [errors, setErrors] = useState({ name: false, description: false, file: false });
+    const [errors, setErrors] = useState({ name: false, description: false });
     const [sizeError, setSizeError] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -21,16 +21,15 @@ export default function Home() {
         const newErrors = {
             name: !name,
             description: !description,
-            file: !file
         };
         setErrors(newErrors);
 
-        if (!name || !description || !file) {
+        if (!name || !description) {
             return;
         }
 
-        // Check file size in bytes
-        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        // Only check file size if a file was uploaded
+        if (file && file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
             setSizeError(true);
             return;
         }
@@ -39,7 +38,7 @@ export default function Home() {
         const cloneId = await createVirtualClone({
             name,
             description,
-            file
+            ...(file && { file })
         });
         setLoading(false);
 
@@ -83,17 +82,16 @@ export default function Home() {
                     {errors.description && <div className="text-red-500 text-sm mt-1">Please fill this field</div>}
                 </div>
                 <div className="w-full relative">
-                    <p className="mb-2 text-gray-700">Upload mp3 of the voice of the person (max 20MB)</p>
+                    <p className="mb-2 text-gray-700">Upload mp3 of the person's voice (optional, max 20MB)</p>
                     <input
                         type="file"
                         accept=".mp3"
-                        className={`w-full p-2 border rounded-md ${errors.file || sizeError ? 'border-red-500' : ''}`}
+                        className={`w-full p-2 border rounded-md ${sizeError ? 'border-red-500' : ''}`}
                         onChange={(e) => {
                             setFile(e.target.files?.[0] || null);
                             setSizeError(false);
                         }}
                     />
-                    {errors.file && <div className="text-red-500 text-sm mt-1">Please input mp3 file of the voice</div>}
                     {sizeError && <div className="text-red-500 text-sm mt-1">File size must be less than 20MB</div>}
                 </div>
                 <p className="text-gray-400 text-sm">By clicking the button you agree that you have sole rights to the audio file and the text provided.</p>
