@@ -58,7 +58,10 @@ export default function Home() {
             <div className="w-[41vw] flex flex-col gap-8 row-start-2 items-center bg-gray-300 p-8 rounded-xl">
                 <h1 className="text-4xl font-bold">Unspoken AI</h1>
                 <h3 className="w-full text-gray-600 text-xl text-center">
-                    Bring back your predecessors to life with our amazing AI virtual persona clones!
+                    Bring back your predecessors to life with our AI virtual personas.
+                    Create digitalized immortal versions of your loved ones.
+                    Bring back historical figures to life.
+                    Create memorials of your ancestors.
                 </h3>
                 <div className="w-full relative">
                     <p className="mb-2 text-gray-700">What's the name of the person?</p>

@@ -42,6 +42,8 @@ npm run dev
 - Supabase
 - OpenAI
 - Tailwind CSS
+- PostHog
+- fal.ai for shots of demo
 
 ## Learn More
 
