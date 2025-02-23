@@ -92,12 +92,6 @@ export async function createVirtualClone(formData: {
 
     let voiceIDPromise;
 
-    const languagePrompt = "What is language of the message? Based user messagre respond with two letter: en, fr, pl etc.";
-
-    console.log("languagePrompt\n", languagePrompt);
-
-    const awaitLanguage = openaiCompletion(languagePrompt, formData.description);
-
     if (!formData.file) {
         console.log("No file provided, using prebuild voice");
         // check if male or female
