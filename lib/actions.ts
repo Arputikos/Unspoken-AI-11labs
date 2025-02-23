@@ -88,15 +88,52 @@ export async function createVirtualClone(formData: {
     description: string;
     file: File;
 }) {
-    if (!formData.file) {
-        console.error("Cannot create voice - no file provided")
-        return;
-    }
-
     const person_name = formData.name;
-    
-    // Start voice creation early and let it run in parallel
-    const voiceIDPromise = addVoice(formData.file, person_name);
+
+    let voiceIDPromise;
+
+    const languagePrompt = "What is language of the message? Based user messagre respond with two letter: en, fr, pl etc.";
+
+    console.log("languagePrompt\n", languagePrompt);
+
+    const awaitLanguage = openaiCompletion(languagePrompt, formData.description);
+
+    if (!formData.file) {
+        console.log("No file provided, using prebuild voice");
+        // check if male or female
+        const genderPrompt = "What is gender of person described? Based user messagre respond with one word male or female.";
+        const genderMessage = "# Name\n" + formData.name + "\n\n# Description\n" + formData.description;
+
+        console.log("genderPrompt\n", genderPrompt);
+        console.log("genderMessage\n", genderMessage);
+
+        const gender = await openaiCompletion(genderPrompt, genderMessage);
+
+        console.log("Detected gender:", gender);
+        
+        if (gender === "male") {
+            // male
+
+            // Remy
+            // voiceIDPromise = "HgVtfyEbd484Fg7KDrp7";
+
+            // Antonio - Grumpy Grandpa
+            voiceIDPromise = "s2wvuS7SwITYg8dqsJdn";
+
+            console.log("Using male voice ID:", voiceIDPromise);
+        }
+        else {
+            // female
+            // Lunaria - Calm Meditations and Manifestations
+            voiceIDPromise = "Nyip1VgoS6bg9Vl30y8v";
+            console.log("Using female voice ID:", voiceIDPromise);
+        }
+    }
+    else {
+        console.log("File:", formData.file);
+        // Start voice creation early and let it run in parallel
+        voiceIDPromise = addVoice(formData.file, person_name);
+    }
 
     let style_extractor_prompt = style_extractor_agent_prompt.replaceAll('{person_name}', person_name);
     let conv_ai_prompt_gen_prompt = conversational_ai_prompt_generator;
@@ -197,11 +234,17 @@ async function deleteVoices(): Promise<void> {
 
     console.log(`Current voice count: ${voices.voices.length}`);
 
+
+
     if (voices.voices.length > 25) {
         // Find the oldest voice based on created_at_unix
         const oldestVoice = voices.voices.reduce((oldest, current) => {
             const oldestTime = oldest.created_at_unix ?? Number.MAX_VALUE;
             const currentTime = current.created_at_unix ?? Number.MAX_VALUE;
+            console.log("Checking", current.name, current.category)
+            if (current.category === "premade") {
+                return oldest;
+            }
             return currentTime < oldestTime ? current : oldest;
         });
 
@@ -214,16 +257,16 @@ async function deleteVoices(): Promise<void> {
     }
 }
 
-// Example usage:
-// const voiceId = await addVoice(fileObject, "Custom Voice Name");
-
-async function createAgent(prompt: string, first_message: string, voice_id: string, internal_name: string, language: string = "en") {
+async function createAgent(prompt: string, first_message: string, voice_id: string, internal_name: string, language: string) {
     console.log("Adding new agent...")
 
     const apiKey = process.env.XI_API_KEY
     if (!apiKey) {
         throw Error('XI_API_KEY is not set')
     }
+
+    console.log(`Voice ID: ${voice_id} (type: ${typeof voice_id})`);
+    console.log(`Language: ${language}`);
 
     const client = new ElevenLabsClient({ apiKey: apiKey });
     const res = await client.conversationalAi.createAgent({

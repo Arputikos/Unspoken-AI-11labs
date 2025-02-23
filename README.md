@@ -28,12 +28,10 @@ bun dev
 ```bash
 i=node:hydrogen-alpine3.21
 docker pull $i
-docker run -v $PWD:/app -it --rm $i sh
-cd /app
+docker run -w /app -v $PWD:/app -p 3000:3000 -it --rm $i sh
 npm i
 npm run dev
 # npm run build
-# - Network: <IP>
 ```
 
 ## Technologies used
